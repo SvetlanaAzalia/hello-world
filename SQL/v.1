@@ -1,1 +1,108 @@
-select * from table
+CREATE TABLE service (
+  ID       NUMBER(5, 0)     NOT NULL,
+  NAME      VARCHAR2(200 BYTE),
+  CONSTRAINT PK_SERVICE PRIMARY KEY (ID) USING INDEX TABLESPACE INDEXES STORAGE (INITIAL 64 K
+                                                                                      NEXT 1 M
+                                                                                      MAXEXTENTS UNLIMITED)
+)
+TABLESPACE USERS
+STORAGE (INITIAL 64 K
+         NEXT 1 M
+         MAXEXTENTS UNLIMITED)
+LOGGING;
+
+COMMENT ON TABLE service IS 'Список доступных сервисов';
+COMMENT ON COLUMN service.ID IS 'Идентификатор';
+COMMENT ON COLUMN service.NAME IS 'Наименование сервиса';
+
+
+
+
+CREATE TABLE provider (
+  ID       NUMBER(5, 0)     NOT NULL,
+  NAME      VARCHAR2(200 BYTE),
+  CONSTRAINT PK_provider PRIMARY KEY (ID) USING INDEX TABLESPACE INDEXES STORAGE (INITIAL 64 K
+                                                                                      NEXT 1 M
+                                                                                      MAXEXTENTS UNLIMITED)
+)
+TABLESPACE USERS
+STORAGE (INITIAL 64 K
+         NEXT 1 M
+         MAXEXTENTS UNLIMITED)
+LOGGING;
+
+COMMENT ON TABLE provider IS 'Список доступных провайдеров';
+COMMENT ON COLUMN provider.ID IS 'Идентификатор';
+COMMENT ON COLUMN provider.NAME IS 'Наименование провайдера';
+
+
+
+CREATE TABLE PGB_account (
+  ID       NUMBER(5, 0)     NOT NULL,
+  NAME      VARCHAR2(200 BYTE),
+  AV_AMOUNT   NUMBER(16, 2)	 DEFAULT 0,
+  CONTRACT_NUMBER  VARCHAR2(16 BYTE) NOT NULL,
+
+  CONSTRAINT PK_account PRIMARY KEY (ID) USING INDEX TABLESPACE INDEXES STORAGE (INITIAL 64 K
+                                                                                      NEXT 1 M
+                                                                                      MAXEXTENTS UNLIMITED)
+)
+TABLESPACE USERS
+STORAGE (INITIAL 64 K
+         NEXT 1 M
+         MAXEXTENTS UNLIMITED)
+LOGGING;
+
+COMMENT ON TABLE PGB_account IS 'Список существующих счетов';
+COMMENT ON COLUMN PGB_account.ID IS 'Идентификатор';
+COMMENT ON COLUMN PGB_account.NAME IS 'Владелец счета';
+COMMENT ON COLUMN PGB_account.AV_AMOUNT IS 'Доступная сумма на счете';
+COMMENT ON COLUMN PGB_account.CONTRACT_NUMBER IS 'Номер договора';
+
+INSERT INTO PGB_ACCOUNT (ID, NAME, CONTRACT_NUMBER) VALUES (1, 'Вася','001-123-m') ;
+INSERT INTO PGB_ACCOUNT (ID, NAME, CONTRACT_NUMBER) VALUES (2, 'Петя','002-123-d') ;
+INSERT INTO PGB_ACCOUNT (ID, NAME, CONTRACT_NUMBER) VALUES (3, 'Саша','003-123-m') ;
+
+
+INSERT INTO PROVIDER (ID, NAME) VALUES (1, 'MTS') ;
+INSERT INTO PROVIDER (ID, NAME) VALUES (2, 'Megafon') ;
+INSERT INTO PROVIDER (ID, NAME) VALUES (3, 'InterZet') ;
+
+
+INSERT INTO SERVICE (ID, NAME) VALUES (1, 'Домашний интернет') ;
+INSERT INTO SERVICE (ID, NAME) VALUES (2, 'Мобильный интернет') ;
+INSERT INTO SERVICE (ID, NAME) VALUES (3, 'Детский интернет') ;
+
+
+CREATE TABLE PGB_MESSAGE_LOG(
+   date_in		 VARCHAR2(20 BYTE),
+   sessionId_in		 NUMBER,
+   provider_in		 NUMBER,
+   messtype_in		 VARCHAR2(20 BYTE),
+   clob_in		 CLOB
+)
+TABLESPACE USERS
+STORAGE (INITIAL 64 K
+         NEXT 1 M
+         MAXEXTENTS UNLIMITED)
+LOGGING;
+
+
+CREATE TABLE PGB_PAYMENT(
+   date_in		 VARCHAR2(20 BYTE),
+   date_post		 VARCHAR2(20 BYTE),
+   sessionId_in		 NUMBER(7, 0)     NOT NULL,
+   provider_in		 NUMBER(5, 0)     NOT NULL,
+   contract_number VARCHAR2(16 BYTE) NOT NULL,
+   ServiceID NUMBER(5, 0)     NOT NULL,
+   amount_in NUMBER(16, 2),
+   email  VARCHAR2(100 BYTE),
+   phone  VARCHAR2(20 BYTE),
+   fio  VARCHAR2(100 BYTE)
+  		 
+)
+TABLESPACE USERS
+STORAGE (INITIAL 64 K
+         NEXT 1 M
+         MAXEXTENTS UNLIMITED)
+LOGGING;
