@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="window-1251"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ResponseCode>
 	<Result>Результат запроса (Num)</Result>
 	<Description>Описание (Char)</Description>
