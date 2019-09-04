@@ -2,4 +2,9 @@
 <ResponseCode>
 	<Result>Результат запроса (Num)</Result>
 	<Description>Описание (Char)</Description>
+	<Date_RC>Дата/время ответа<Date_RC>
+	<sessionId>ID сессии (Num)</sessionId>
+	<account>Номер договора или лицевой счет (Char)</account>
+	<amount>Сумма (Num)</amount>
+	<fio>ФИО (Char)</fio>
 </ResponseCode>
