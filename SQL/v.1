@@ -15,7 +15,7 @@ COMMENT ON TABLE service IS 'Список доступных сервисов';
 COMMENT ON COLUMN service.ID IS 'Идентификатор';
 COMMENT ON COLUMN service.NAME IS 'Наименование сервиса';
 
-
+/*считаем, что у всех провайдеров одинаковый набор сервисов. Пока привязку провайдера к сервису не делаю*/
 
 
 CREATE TABLE provider (
@@ -88,8 +88,8 @@ STORAGE (INITIAL 64 K
          MAXEXTENTS UNLIMITED)
 LOGGING;
 
-
 CREATE TABLE PGB_PAYMENT(
+   ID         NUMBER(7, 0)     NOT NULL,
    date_in		 VARCHAR2(20 BYTE),
    date_post		 VARCHAR2(20 BYTE),
    sessionId_in		 NUMBER(7, 0)     NOT NULL,
