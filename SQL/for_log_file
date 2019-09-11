@@ -1,12 +1,13 @@
-/*наброски по созданию лог-файла. */
-CREATE OR REPLACE  FUNCTION PGB_get_XML(XML_in in  XMLTYPE)
-     return varchar2 is
+CREATE OR REPLACE FUNCTION SYSTEM.PGB_get_XML(XML_in in  XMLTYPE)
+
+return varchar2 is
      SESSIONID_IN NUMBER;
      PROVIDER_IN  NUMBER;
      MESSTYPE_IN  VARCHAR2(20 BYTE);
      SERVICE_IN   NUMBER;
+     PROVIDER_cnt NUMBER;
      ft    UTL_FILE.FILE_TYPE;
-     vFileLocation  varchar2(255) := 'EXP_DIR';
+     vFileLocation  varchar2(255):= 'EXP_DIR';
      vFilename     varchar2(1000);
      vFileExists      boolean;
      vFileLength   number;
@@ -14,49 +15,49 @@ CREATE OR REPLACE  FUNCTION PGB_get_XML(XML_in in  XMLTYPE)
      ext                    VARCHAR2(3);
      buf1                                 VARCHAR2(32767);
      vbuf                                 VARCHAR2(32767);
-
-     TYPE t_log IS RECORD (
-    t_SESSIONID_IN                         NUMBER,
-    t_PROVIDER_IN                          NUMBER,
-    t_MESSTYPE_IN                          VARCHAR2(20 BYTE),
-    t_SERVICE_IN                              NUMBER,
-    t_XML_in                       XMLTYPE);
-log_rec               t_log;
-CURSOR log_crsr IS
-select XML_in.extract('/info/sessionId').getStringVal() INTO SESSIONID_IN , 
-       XML_in.extract('/info/provider').getStringVal() INTO PROVIDER_IN , 
-       XML_in.extract('/info/messtype').getStringVal() INTO MESSTYPE_IN ,
-       XML_in.extract('/info/serviceid').getStringVal() INTO SERVICE_IN   from dual;
-);
 BEGIN
-  OPEN log_crsr;
-  FETCH log_crsr INTO rc_rec;
-  if log_crsr%NOTFOUND or log_crsr%ROWCOUNT = 0 then
-   resp_code_out:= 1;   -- No Data for Uploaded
-   return; 
-  end if; 
+
+select to_Number(XML_in.extract('//info/sessionId/text()').getStringVal()) INTO SESSIONID_IN from dual;
+select to_Number(XML_in.extract('//info/provider/text()').getStringVal()) INTO PROVIDER_IN  from dual;
+select XML_in.extract('//info/messtype/text()').getStringVal() INTO MESSTYPE_IN  from dual;
+select to_NUmber(XML_in.extract('//info/serviceid/text()').getStringVal()) INTO SERVICE_IN   from dual;
+
+
   select to_char(sysdate, 'DDD') into ext from dual;
   vFilename:= 'My_Log_01'||'.'||ext;
   UTL_FILE.FGETATTR(vFileLocation, vFilename, vFileExists, vFileLength, vBlockSize);
 
-if not vFileExists then
+
+--if not vFileExists then
+
   select to_char(sysdate, 'YYYYMMDDhh24MISS') into vbuf from dual;
+
   buf1:= 'Заголовок придумаю позже';
+
   ft := UTL_FILE.FOPEN(location => vFileLocation,
                        filename => vFilename,
-                       open_mode => 'a', 
+                       open_mode => 'a',
                        max_linesize => 32767);
-  UTL_FILE.PUT_LINE(ft,buf1); 
-  LOOP
-    buf1:= TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')||' MESSTYPE_IN='|| log_rec.T_MESSTYPE_IN||' SERVICE_IN='|| log_rec.T_SERVICE_IN ||' SESSIONID_IN='||log_rec.T_SESSIONID_IN ||' PROVIDER_IN='||log_rec.T_PROVIDER_IN;
+  UTL_FILE.PUT_LINE(ft,buf1);
+
+    buf1:= TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')||' MESSTYPE_IN='|| MESSTYPE_IN||' SERVICE_IN='|| SERVICE_IN ||' SESSIONID_IN='||SESSIONID_IN ||' PROVIDER_IN='||PROVIDER_IN;
     buf1:= CONVERT(buf1, 'CL8MSWIN1251');
-    UTL_FILE.PUT_LINE(ft,buf1); 
-  FETCH log_crsr INTO log_rec;
-  EXIT WHEN log_crsr%NOTFOUND;
-  END LOOP;
+    UTL_FILE.PUT_LINE(ft,buf1);
 
-  INSERT INTO PGB_MESSAGE_LOG ( CLOB_IN, SERVICE_IN, date_in, sessionId_in, provider_in, messtype_in)
-  VALUES (TO_CLOB(XML_in), SERVICE_IN, TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS'),SESSIONID_IN ,PROVIDER_IN, MESSTYPE_IN); 
+       select COUNT(ID) INTO PROVIDER_cnt From PGB_PROVIDER WHERE id = PROVIDER_IN;
 
+dbms_output.put_line(PROVIDER_cnt);
 
-  END PGB_get_XML;
+ 
+  if UTL_FILE.IS_OPEN(ft) then UTL_FILE.FCLOSE(ft);
+  end if;
+--END IF;
+
+      pgb_pack_fin.insert_message(XML_in, SESSIONID_IN ,PROVIDER_IN, MESSTYPE_IN, SERVICE_IN);
+  
+      RETURN 'Входящий документ. Сессия ID '||SESSIONID_IN||' '||MESSTYPE_IN;
+
+dbms_output.put_line('Входящий документ. Сессия ID '||SESSIONID_IN||' '||MESSTYPE_IN);
+
+      END;
+/
