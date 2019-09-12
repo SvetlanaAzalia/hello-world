@@ -1,4 +1,4 @@
-CREATE TABLE service (
+CREATE TABLE PGB_service (
   ID       NUMBER(5, 0)     NOT NULL,
   NAME      VARCHAR2(200 BYTE),
   CONSTRAINT PK_SERVICE PRIMARY KEY (ID) USING INDEX TABLESPACE INDEXES STORAGE (INITIAL 64 K
@@ -11,14 +11,14 @@ STORAGE (INITIAL 64 K
          MAXEXTENTS UNLIMITED)
 LOGGING;
 
-COMMENT ON TABLE service IS 'Список доступных сервисов';
-COMMENT ON COLUMN service.ID IS 'Идентификатор';
-COMMENT ON COLUMN service.NAME IS 'Наименование сервиса';
+COMMENT ON TABLE PGB_service IS 'Список доступных сервисов';
+COMMENT ON COLUMN PGB_service.ID IS 'Идентификатор';
+COMMENT ON COLUMN PGB_service.NAME IS 'Наименование сервиса';
 
 /*считаем, что у всех провайдеров одинаковый набор сервисов. Пока привязку провайдера к сервису не делаю*/
 
 
-CREATE TABLE provider (
+CREATE TABLE PGB_provider (
   ID       NUMBER(5, 0)     NOT NULL,
   NAME      VARCHAR2(200 BYTE),
   CONSTRAINT PK_provider PRIMARY KEY (ID) USING INDEX TABLESPACE INDEXES STORAGE (INITIAL 64 K
@@ -31,9 +31,9 @@ STORAGE (INITIAL 64 K
          MAXEXTENTS UNLIMITED)
 LOGGING;
 
-COMMENT ON TABLE provider IS 'Список доступных провайдеров';
-COMMENT ON COLUMN provider.ID IS 'Идентификатор';
-COMMENT ON COLUMN provider.NAME IS 'Наименование провайдера';
+COMMENT ON TABLE PGB_provider IS 'Список доступных провайдеров';
+COMMENT ON COLUMN PGB_provider.ID IS 'Идентификатор';
+COMMENT ON COLUMN PGB_provider.NAME IS 'Наименование провайдера';
 
 
 
@@ -64,21 +64,21 @@ INSERT INTO PGB_ACCOUNT (ID, NAME, CONTRACT_NUMBER) VALUES (2, 'Петя','002-1
 INSERT INTO PGB_ACCOUNT (ID, NAME, CONTRACT_NUMBER) VALUES (3, 'Саша','003-123-m') ;
 
 
-INSERT INTO PROVIDER (ID, NAME) VALUES (1, 'MTS') ;
-INSERT INTO PROVIDER (ID, NAME) VALUES (2, 'Megafon') ;
-INSERT INTO PROVIDER (ID, NAME) VALUES (3, 'InterZet') ;
+INSERT INTO PGB_PROVIDER (ID, NAME) VALUES (1, 'MTS') ;
+INSERT INTO PGB_PROVIDER (ID, NAME) VALUES (2, 'Megafon') ;
+INSERT INTO PGB_PROVIDER (ID, NAME) VALUES (3, 'InterZet') ;
 
 
-INSERT INTO SERVICE (ID, NAME) VALUES (1, 'Домашний интернет') ;
-INSERT INTO SERVICE (ID, NAME) VALUES (2, 'Мобильный интернет') ;
-INSERT INTO SERVICE (ID, NAME) VALUES (3, 'Детский интернет') ;
+INSERT INTO PGB_SERVICE (ID, NAME) VALUES (1, 'Домашний интернет') ;
+INSERT INTO PGB_SERVICE (ID, NAME) VALUES (2, 'Мобильный интернет') ;
+INSERT INTO PGB_SERVICE (ID, NAME) VALUES (3, 'Детский интернет') ;
 
 
 CREATE TABLE PGB_MESSAGE_LOG(
    date_in		 VARCHAR2(20 BYTE),
    sessionId_in		 NUMBER,
    provider_in		 NUMBER,
-   service_in      NUMBER
+   service_in      NUMBER,
    messtype_in		 VARCHAR2(20 BYTE),
    clob_in		 CLOB
 )
