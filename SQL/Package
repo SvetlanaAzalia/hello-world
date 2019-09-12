@@ -1,0 +1,115 @@
+CREATE OR REPLACE PACKAGE XXI.PGB_pack_fin IS
+
+procedure INSERT_MESSAGE(
+     XML_in in  XMLTYPE,
+     SESSIONID_IN IN NUMBER,
+     PROVIDER_IN  IN NUMBER,
+     MESSTYPE_IN  IN VARCHAR2,
+     SERVICE_IN   IN NUMBER
+);
+
+procedure INSERT_PAYMENT(
+  DATE_IN         IN  VARCHAR2,
+  DATE_POST       IN  VARCHAR2,
+  SESSIONID_IN    IN  NUMBER,
+  PROVIDER_IN     IN  NUMBER,
+  CONTRACT_NUMBER IN  VARCHAR2,
+  SERVICEID       IN  NUMBER,
+  AMOUNT_IN       IN  NUMBER,
+  EMAIL           IN  VARCHAR2,
+  PHONE           IN  VARCHAR2,
+  FIO             IN  VARCHAR2,
+  rec_id_out                       OUT NUMBER,
+  rec_date_out                 OUT DATE
+);
+
+END;
+/
+
+CREATE OR REPLACE PACKAGE BODY XXI.PGB_PACK_FIN IS
+
+procedure INSERT_MESSAGE( XML_in in  XMLTYPE,
+     SESSIONID_IN IN NUMBER,
+     PROVIDER_IN  IN NUMBER,
+     MESSTYPE_IN  IN VARCHAR2,
+     SERVICE_IN   IN NUMBER
+) IS
+     exc_bad_MESSTYPE                 EXCEPTION;
+     exc_bad_PROVIDER                 EXCEPTION;
+     exc_bad_SERVICE     EXCEPTION;
+     PROVIDER_cnt NUMBER;
+     SERVICE_cnt NUMBER;
+begin
+
+SERVICE_cnt:=0; PROVIDER_cnt:=0;
+IF NOT MESSTYPE_IN in ( 'CHECK', 'payment', 'cancel')
+  THEN RAISE exc_bad_MESSTYPE;
+END IF;
+
+select COUNT(ID) INTO PROVIDER_cnt From PGB_PROVIDER WHERE id = PROVIDER_IN;
+IF PROVIDER_cnt <= 0 
+  THEN  RAISE exc_bad_PROVIDER;
+END IF;
+-- считаем что у всех провайдеров одинаковые сервисы. Если не так, то таблицу сервисов связать с провайдером
+select COUNT(ID) INTO SERVICE_cnt From PGB_SERVICE WHERE id = SERVICE_IN;
+IF SERVICE_cnt <= 0 
+  THEN  RAISE exc_bad_SERVICE;
+END IF;
+
+   INSERT INTO PGB_MESSAGE_LOG
+   ( CLOB_IN, SERVICE_IN, date_in, sessionId_in, provider_in, messtype_in)
+   VALUES 
+   (TO_CLOB(XML_in), SERVICE_IN, TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS'),SESSIONID_IN ,PROVIDER_IN, MESSTYPE_IN); 
+
+IF SQL%NOTFOUND THEN
+   DBMS_OUTPUT.PUT_LINE('Record Not Insert; Session_Number='||SERVICE_IN||';');
+END IF;
+
+EXCEPTION       
+ WHEN exc_bad_MESSTYPE THEN
+   raise_application_error(-20101, 'PACK_FIN.INSERT_MESSAGE: Bad parameter MESSTYPE='||MESSTYPE_IN||';');
+WHEN exc_bad_PROVIDER THEN
+   raise_application_error(-20102, 'PACK_FIN.INSERT_MESSAGE: Bad parameter PROVIDER='||PROVIDER_IN||';');
+WHEN exc_bad_SERVICE THEN
+   raise_application_error(-20102, 'PACK_FIN.INSERT_MESSAGE: Bad parameter SERVICE='||SERVICE_IN||';');
+WHEN OTHERS THEN
+   raise_application_error(-20999, SubStr(' PACK_FIN.INSERT_MESSAGE: Error => ' || SQLERRM, 1, 255));
+end;
+
+/*заготовка*/
+procedure INSERT_PAYMENT(
+  DATE_IN         IN  VARCHAR2,
+  DATE_POST       IN  VARCHAR2,
+  SESSIONID_IN    IN  NUMBER,
+  PROVIDER_IN     IN  NUMBER,
+  CONTRACT_NUMBER IN  VARCHAR2,
+  SERVICEID       IN  NUMBER,
+  AMOUNT_IN       IN  NUMBER,
+  EMAIL           IN  VARCHAR2,
+  PHONE           IN  VARCHAR2,
+  FIO             IN  VARCHAR2,
+  rec_id_out      OUT NUMBER,
+  rec_date_out    OUT DATE
+) IS
+begin
+
+rec_date_out:=sysdate;
+
+SELECT seq_payment.nextval INTO rec_id_out from dual;
+
+INSERT INTO PGB_PAYMENT
+  (ID, DATE_IN, DATE_POST, SESSIONID_IN, PROVIDER_IN, CONTRACT_NUMBER, SERVICEID, AMOUNT_IN
+   , EMAIL, PHONE, FIO)
+VALUES
+  (rec_id_out, rec_date_out, rec_date_out,SESSIONID_IN, PROVIDER_IN, CONTRACT_NUMBER, SERVICEID, AMOUNT_IN
+   , EMAIL, PHONE, FIO);
+IF SQL%NOTFOUND THEN
+   DBMS_OUTPUT.PUT_LINE('Record Not Insert; Id='||rec_id_out);
+END IF;
+
+EXCEPTION
+     WHEN OTHERS THEN
+     raise_application_error(-20999, SubStr('PACK_FIN.INSERT_PAYMENT: Error => ' || SQLERRM, 1, 255));
+end;
+
+END;
